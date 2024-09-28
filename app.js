@@ -2,17 +2,22 @@ import express from "express";
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
+import groupRoutes from "./routes/groupRoute.js";
+import postRoutes from "./routes/postRoute.js";
+
 const app = express();
 dotenv.config(); // .env 파일 로드
+
+// CORS 설정
+import cors from "cors";
+app.use(cors());
+
+// JSON 데이터 파싱 미들웨어 추가
+app.use(express.json());
 
 // MongoDB URI 가져오기
 const mongoURI = process.env.DATABASE_URL;
 mongoose.set("strictQuery", true);
-
-// 라우트 정의
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
 
 // MongoDB 연결
 mongoose
@@ -24,6 +29,10 @@ mongoose
     console.error("Error connecting to DB:", error);
     process.exit(1);
   });
+
+// 라우트 설정
+app.use("/api", groupRoutes); // 그룹 관련 API
+app.use("/api", postRoutes); // 게시글 관련 API
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
