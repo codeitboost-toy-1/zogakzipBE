@@ -12,11 +12,68 @@ import {
 // 게시글 등록
 export const createPost = async (req, res) => {
   try {
-    const groupId = req.params.groupId; // URL에서 groupId를 가져옵니다.
-    const post = await createPostService({ ...req.body, groupId }); // body와 함께 groupId를 전달합니다
-    res.status(200).json(post);
+    // URL 파라미터로 전달된 groupId
+    const groupId = req.params.groupId;
+
+    // Request body로부터 필요한 데이터 추출
+    const {
+      nickname,
+      title,
+      content,
+      postPassword,
+      groupPassword,
+      imageUrl,
+      tags,
+      location,
+      moment,
+      isPublic,
+    } = req.body;
+
+    // 필수 필드가 누락된 경우 400 에러 반환
+    if (
+      !groupId ||
+      !nickname ||
+      !title ||
+      !content ||
+      !postPassword ||
+      !groupPassword
+    ) {
+      return res.status(400).json({ message: "잘못된 요청입니다" });
+    }
+
+    // 게시글 생성 서비스 호출
+    const newPost = await createPostService({
+      groupId,
+      nickname,
+      title,
+      content,
+      imageUrl,
+      tags,
+      location,
+      moment,
+      isPublic,
+      postPassword,
+    });
+
+    // 필요한 필드만 추출해서 응답으로 보냅니다.
+    const responseData = {
+      id: newPost._id,
+      groupId: newPost.groupId,
+      nickname: newPost.nickname,
+      title: newPost.title,
+      content: newPost.content,
+      imageUrl: newPost.imageUrl,
+      tags: newPost.tags,
+      location: newPost.location,
+      moment: newPost.moment,
+      isPublic: newPost.isPublic,
+      likeCount: newPost.likeCount || 0, // 기본값 0
+      commentCount: newPost.commentCount || 0, // 기본값 0
+      createdAt: newPost.createdAt,
+    };
+
+    res.status(200).json(responseData); // 성공 시 응답 반환
   } catch (error) {
-    console.error("Error creating post:", error.message); // 오류 메시지 출력
     res.status(400).json({ message: "잘못된 요청입니다" });
   }
 };
@@ -27,7 +84,8 @@ export const getPostList = async (req, res) => {
     const { page, pageSize, sortBy, keyword, isPublic } = req.query; // 쿼리 파라미터
     const groupId = req.params.groupId; // 그룹 ID 파라미터
 
-    const posts = await getPostListService({
+    // 서비스 호출
+    const postsData = await getPostListService({
       groupId,
       page,
       pageSize,
@@ -35,7 +93,28 @@ export const getPostList = async (req, res) => {
       keyword,
       isPublic,
     });
-    res.status(200).json(posts); // 성공 시 데이터 반환
+
+    // 응답 형식 맞춰서 데이터 가공
+    const responseData = {
+      currentPage: postsData.currentPage,
+      totalPages: postsData.totalPages,
+      totalItemCount: postsData.totalItemCount,
+      data: postsData.data.map((post) => ({
+        id: post._id,
+        nickname: post.nickname,
+        title: post.title,
+        imageUrl: post.imageUrl,
+        tags: post.tags,
+        location: post.location,
+        moment: post.moment,
+        isPublic: post.isPublic,
+        likeCount: post.likeCount || 0, // 기본값 0
+        commentCount: post.commentCount || 0, // 기본값 0
+        createdAt: post.createdAt,
+      })),
+    };
+
+    res.status(200).json(responseData); // 성공 시 데이터 반환
   } catch (error) {
     console.error("Error fetching post list:", error.message);
     res.status(400).json({ message: "잘못된 요청입니다" });
@@ -46,8 +125,28 @@ export const getPostList = async (req, res) => {
 export const getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
+
+    // 게시글 상세 조회 서비스 호출
     const post = await getPostDetailService(postId);
-    res.status(200).json(post);
+
+    // 응답 형식에 맞춰서 데이터 가공
+    const responseData = {
+      id: post._id,
+      groupId: post.groupId,
+      nickname: post.nickname,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      tags: post.tags,
+      location: post.location,
+      moment: post.moment,
+      isPublic: post.isPublic,
+      likeCount: post.likeCount || 0, // 기본값 0
+      commentCount: post.commentCount || 0, // 기본값 0
+      createdAt: post.createdAt,
+    };
+
+    res.status(200).json(responseData); // 성공 시 데이터 반환
   } catch (error) {
     res.status(404).json({ message: "존재하지 않습니다" });
   }
@@ -58,8 +157,28 @@ export const updatePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const { postPassword } = req.body;
+
+    // 게시글 수정 서비스 호출
     const updatedPost = await updatePostService(postId, postPassword, req.body);
-    res.status(200).json(updatedPost);
+
+    // 수정된 게시글 데이터 가공
+    const responseData = {
+      id: updatedPost._id,
+      groupId: updatedPost.groupId,
+      nickname: updatedPost.nickname,
+      title: updatedPost.title,
+      content: updatedPost.content,
+      imageUrl: updatedPost.imageUrl,
+      tags: updatedPost.tags,
+      location: updatedPost.location,
+      moment: updatedPost.moment,
+      isPublic: updatedPost.isPublic,
+      likeCount: updatedPost.likeCount || 0, // 기본값 0
+      commentCount: updatedPost.commentCount || 0, // 기본값 0
+      createdAt: updatedPost.createdAt,
+    };
+
+    res.status(200).json(responseData); // 성공 시 데이터 반환
   } catch (error) {
     if (error.message === "Incorrect password") {
       res.status(403).json({ message: "비밀번호가 틀렸습니다" });
@@ -72,7 +191,6 @@ export const updatePost = async (req, res) => {
 };
 
 // 게시글 삭제
-// 게시글 삭제 Controller
 export const deletePost = async (req, res) => {
   try {
     const postId = req.params.postId;

@@ -2,21 +2,9 @@ import Post from "../models/Post.js";
 import mongoose from "mongoose";
 
 // 게시글 등록
-export const createPostService = async (data) => {
-  const newPost = new Post({
-    groupId: data.groupId,
-    nickname: data.nickname,
-    title: data.title,
-    content: data.content,
-    postPassword: data.postPassword,
-    imageUrl: data.imageUrl,
-    tags: data.tags,
-    location: data.location,
-    moment: data.moment,
-    isPublic: data.isPublic,
-  });
-
-  return await newPost.save();
+export const createPostService = async (postData) => {
+  const post = new Post(postData);
+  return await post.save();
 };
 
 // 게시글 목록 조회
@@ -34,26 +22,29 @@ export const getPostListService = async ({
     mostLiked: { likeCount: -1 },
   };
 
-  // groupId를 문자열로 비교 (만약 MongoDB에 string으로 저장되어 있다면)
+  // 필터 정의 (태그를 기준으로 검색)
   const filter = {
-    groupId: groupId, // ObjectId 대신 문자열로 비교
-    ...(isPublic !== undefined && { isPublic: isPublic === "true" }), // Boolean 값으로 처리
-    ...(keyword && { tags: { $regex: keyword, $options: "i" } }), // tags 필드에 keyword 포함 필터
+    groupId,
+    ...(isPublic !== undefined && { isPublic: isPublic === "true" }), // 공개 여부 필터
+    ...(keyword && { tags: { $in: [new RegExp(keyword, "i")] } }), // 태그 필터
   };
 
-  console.log("Applied Filter:", filter); // 필터 로그
-
+  // 전체 게시글 수 계산
   const totalItemCount = await Post.countDocuments(filter);
+
+  // 게시글 목록 조회 (페이지네이션 및 정렬 적용)
   const posts = await Post.find(filter)
-    .sort(sortOptions[sortBy])
-    .skip((page - 1) * pageSize)
+    .sort(sortOptions[sortBy]) // 정렬
+    .skip((page - 1) * pageSize) // 페이지네이션
     .limit(parseInt(pageSize));
 
-  console.log("Posts:", posts); // 쿼리 결과 확인
+  // 전체 페이지 수 계산
+  const totalPages = Math.ceil(totalItemCount / pageSize);
 
+  // 결과 반환
   return {
-    currentPage: page,
-    totalPages: Math.ceil(totalItemCount / pageSize),
+    currentPage: parseInt(page),
+    totalPages,
     totalItemCount,
     data: posts,
   };
@@ -63,6 +54,7 @@ export const getPostListService = async ({
 export const getPostDetailService = async (postId) => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("Post not found");
+
   return post;
 };
 
@@ -72,8 +64,8 @@ export const updatePostService = async (postId, password, updateData) => {
   if (!post) throw new Error("Post not found");
   if (post.postPassword !== password) throw new Error("Incorrect password");
 
-  Object.assign(post, updateData);
-  return await post.save();
+  Object.assign(post, updateData); // 업데이트 데이터를 게시글에 병합
+  return await post.save(); // 저장 후 반환
 };
 
 // 게시글 삭제
