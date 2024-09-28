@@ -9,6 +9,8 @@ import {
   checkPostPublicService,
 } from "../services/postService.js";
 
+import { checkBadgeCriteria } from "../services/badgeService.js";
+
 // 게시글 등록
 export const createPost = async (req, res) => {
   try {
