@@ -3,17 +3,18 @@ import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
 const app = express();
-dotenv.config(); // 환경 변수 로드
+dotenv.config(); // .env 파일 로드
+
+// MongoDB URI 가져오기
+const mongoURI = process.env.DATABASE_URL;
+mongoose.set("strictQuery", true);
+
 // 라우트 정의
 app.get("/", (req, res) => {
   res.send("Hello");
 });
 
-// mongodb 연결
-const mongoURI = process.env.DATABASE_URL; // 환경 변수에서 DB URL을 가져옴
-
-mongoose.set("strictQuery", true);
-
+// MongoDB 연결
 mongoose
   .connect(mongoURI)
   .then(() => {
@@ -21,7 +22,7 @@ mongoose
   })
   .catch((error) => {
     console.error("Error connecting to DB:", error);
-    process.exit(1); // 연결 실패 시 프로세스 종료
+    process.exit(1);
   });
 
 const PORT = process.env.PORT || 3000;
