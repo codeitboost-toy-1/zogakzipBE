@@ -1,4 +1,5 @@
 import Group from "../models/Group.js";
+import Post from "../models/Post.js";
 import mongoose from "mongoose";
 
 // 그룹 등록
@@ -87,28 +88,40 @@ export const deleteGroupService = async (groupId, password) => {
   if (!group) throw new Error("Group not found"); // 그룹이 없으면 404 처리
   if (group.password !== password) throw new Error("Incorrect password"); // 비밀번호가 일치하지 않으면 403 처리
 
+  // 그룹 내 게시글 모두 삭제
+  await Post.deleteMany({ groupId: group._id });
+
   // 그룹 삭제 (remove 대신 deleteOne 또는 findByIdAndDelete 사용)
   await Group.findByIdAndDelete(groupId);
+
+  console.log(`Group ${groupId} and its posts have been deleted.`);
 
   return; // 삭제 완료
 };
 
 // 그룹 상세 조회
 export const getGroupDetailService = async (groupId) => {
-  // 그룹을 찾습니다.
-  const group = await Group.findById(groupId);
-  if (!group) {
-    throw new Error("Group not found"); // 그룹이 없으면 404로 보낼 수 있도록 에러 발생
+  if (!mongoose.Types.ObjectId.isValid(groupId)) {
+    throw new Error("Invalid group ID format"); // 그룹 ID 형식이 잘못되었을 때 에러 발생
   }
 
-  // 그룹이 존재할 경우, 데이터 반환 (배지 목록은 예시로 제공, 실제로는 DB와 연동해야 함)
+  const group = await Group.findById(groupId).populate("badges"); // populate를 사용해 badges 참조 데이터 가져오기
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
   return {
-    id: group._id, // MongoDB의 ObjectId 또는 직접 구현한 숫자 기반 ID
+    id: group._id,
     name: group.name,
     image: group.image,
     is_public: group.is_public,
     likes: group.likes,
-    badges: ["badge1", "badge2"], // 실제 배지 데이터 연동 필요
+    badges: group.badges.map((badge) => ({
+      name: badge.name,
+      description: badge.description,
+      iconUrl: badge.iconUrl,
+      createAt: badge.createAt,
+    })), // badge 정보를 구성
     posts_count: group.posts_count,
     created_at: group.created_at,
     description: group.description,

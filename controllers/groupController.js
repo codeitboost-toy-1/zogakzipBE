@@ -123,18 +123,24 @@ export const deleteGroup = async (req, res) => {
 export const getGroupDetail = async (req, res) => {
   try {
     const groupId = req.params.groupId;
+    console.log(`Group ID requested: ${groupId}`); // 그룹 ID 로그 추가
 
     // 서비스에서 그룹 정보를 가져옵니다.
     const group = await getGroupDetailService(groupId);
 
+    if (!group) {
+      console.error(`Group with ID ${groupId} not found`); // 에러 로그 추가
+      return res.status(404).json({ message: "Group not found" });
+    }
+
     // 응답 데이터 형식을 맞추어 전송합니다.
     const response = {
-      id: group.id, // 숫자 ID 또는 ObjectId에 맞는 형식으로
+      id: group.id,
       name: group.name,
       imageUrl: group.image,
       isPublic: group.is_public,
       likeCount: group.likes,
-      badges: group.badges, // 실제로 badge 리스트와 연결된다면 추가 로직 필요
+      badges: group.badges,
       postCount: group.posts_count,
       createdAt: group.created_at,
       introduction: group.description,
@@ -142,8 +148,12 @@ export const getGroupDetail = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    // 요청에 문제가 있을 경우 400 오류를 보냅니다.
-    res.status(400).json({ message: "잘못된 요청입니다" });
+    console.error(
+      `Error fetching group details for ID ${req.params.groupId}: ${error.message}`
+    ); // 에러 메시지 로그 추가
+    res
+      .status(400)
+      .json({ message: "잘못된 요청입니다", error: error.message });
   }
 };
 

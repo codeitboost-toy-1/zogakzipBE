@@ -1,10 +1,18 @@
 import Post from "../models/Post.js";
 import mongoose from "mongoose";
+import { checkAndAwardBadges } from "./badgeService.js";
 
 // 게시글 등록
 export const createPostService = async (postData) => {
   const post = new Post(postData);
-  return await post.save();
+
+  // 게시글(추억) 저장
+  const savedPost = await post.save();
+
+  // 저장된 게시글이 포함된 그룹에 배지를 지급할 조건을 확인하고, 배지를 부여
+  await checkAndAwardBadges(savedPost.groupId);
+
+  return savedPost;
 };
 
 // 게시글 목록 조회

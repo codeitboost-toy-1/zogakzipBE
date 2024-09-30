@@ -9,8 +9,6 @@ import {
   checkPostPublicService,
 } from "../services/postService.js";
 
-import { checkBadgeCriteria } from "../services/badgeService.js";
-
 // 게시글 등록
 export const createPost = async (req, res) => {
   try {
@@ -23,7 +21,6 @@ export const createPost = async (req, res) => {
       title,
       content,
       postPassword,
-      groupPassword,
       imageUrl,
       tags,
       location,
@@ -32,19 +29,12 @@ export const createPost = async (req, res) => {
     } = req.body;
 
     // 필수 필드가 누락된 경우 400 에러 반환
-    if (
-      !groupId ||
-      !nickname ||
-      !title ||
-      !content ||
-      !postPassword ||
-      !groupPassword
-    ) {
+    if (!groupId || !nickname || !title || !content || !postPassword) {
       return res.status(400).json({ message: "잘못된 요청입니다" });
     }
 
     // 게시글 생성 서비스 호출
-    const newPost = await createPostService({
+    const savedPost = await createPostService({
       groupId,
       nickname,
       title,
@@ -59,23 +49,24 @@ export const createPost = async (req, res) => {
 
     // 필요한 필드만 추출해서 응답으로 보냅니다.
     const responseData = {
-      id: newPost._id,
-      groupId: newPost.groupId,
-      nickname: newPost.nickname,
-      title: newPost.title,
-      content: newPost.content,
-      imageUrl: newPost.imageUrl,
-      tags: newPost.tags,
-      location: newPost.location,
-      moment: newPost.moment,
-      isPublic: newPost.isPublic,
-      likeCount: newPost.likeCount || 0, // 기본값 0
-      commentCount: newPost.commentCount || 0, // 기본값 0
-      createdAt: newPost.createdAt,
+      id: savedPost._id,
+      groupId: savedPost.groupId,
+      nickname: savedPost.nickname,
+      title: savedPost.title,
+      content: savedPost.content,
+      imageUrl: savedPost.imageUrl,
+      tags: savedPost.tags,
+      location: savedPost.location,
+      moment: savedPost.moment,
+      isPublic: savedPost.isPublic,
+      likeCount: savedPost.likeCount || 0, // 기본값 0
+      commentCount: savedPost.commentCount || 0, // 기본값 0
+      createdAt: savedPost.createdAt,
     };
 
     res.status(200).json(responseData); // 성공 시 응답 반환
   } catch (error) {
+    console.error(`Error creating post: ${error.message}`); // 에러 로그 추가
     res.status(400).json({ message: "잘못된 요청입니다" });
   }
 };
