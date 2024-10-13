@@ -15,6 +15,7 @@
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB, Mongoose
 - **Environment Management**: dotenv
+- **Back-End Deploy: render
 - **File Management**: fs, path, url
 - **Others**: CORS 설정, RESTful API 설계
 
