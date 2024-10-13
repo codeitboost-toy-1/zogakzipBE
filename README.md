@@ -51,4 +51,7 @@ project/
 ├── package.json         # 프로젝트 설정 및 종속성 관리 파일
 └── README.md            # 프로젝트 설명 파일
 
+### 서비스 구성도
+![조각집 Back-End 서비스 구성도](./servicedi.png)
+
 ```
