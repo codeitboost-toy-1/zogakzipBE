@@ -51,9 +51,7 @@ project/
 ├── package.json         # 프로젝트 설정 및 종속성 관리 파일
 └── README.md            # 프로젝트 설명 파일
 
-### 서비스 구성도
-
-![조각집 drawio](https://github.com/user-attachments/assets/8a0c5d1c-9742-4039-a088-d3282148b8da)
-
-
 ```
+
+### 서비스 구성도
+![조각집 drawio](https://github.com/user-attachments/assets/8a0c5d1c-9742-4039-a088-d3282148b8da)
