@@ -52,6 +52,7 @@ project/
 └── README.md            # 프로젝트 설명 파일
 
 ### 서비스 구성도
-![image](https://github.com/user-attachments/assets/e4c2f1c0-04ce-4190-b949-334ae4b1a326)
+![조각집 drawio](https://github.com/user-attachments/assets/8ce4aab3-c8cc-49f3-9c9c-004ebd91000d)
+
 
 ```
